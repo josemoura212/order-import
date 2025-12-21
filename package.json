@@ -1,0 +1,84 @@
+{
+  "name": "order-import",
+  "displayName": "Order Import",
+  "description": "Ordena imports React",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "order-import.toggleFormatOnSave",
+        "title": "Order Import: Ativar/Desativar Formatação ao Salvar"
+      },
+      {
+        "command": "order-import.organizeImports",
+        "title": "Order Import: Formatar"
+      },
+      {
+        "command": "order-import.selectNormal",
+        "title": "Order Import: Selecionar Tipo 1 (Normal)"
+      },
+      {
+        "command": "order-import.selectAligned",
+        "title": "Order Import: Selecionar Tipo 2 (Alinhado)"
+      }
+    ],
+    "configuration": {
+      "title": "Order Import",
+      "properties": {
+        "orderImport.organizeOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Organizar imports automaticamente ao salvar o arquivo"
+        },
+        "orderImport.formatStyle": {
+          "type": "string",
+          "enum": [
+            "aligned",
+            "normal"
+          ],
+          "default": "aligned",
+          "description": "Estilo de formatação: 'aligned' (alinhado pelo from) ou 'normal' (1 espaço)",
+          "enumDescriptions": [
+            "Alinha todos os imports pelo 'from' com espaços extras",
+            "Usa apenas 1 espaço antes do 'from'"
+          ]
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run package",
+    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.107.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
+    "esbuild": "^0.27.1",
+    "eslint": "^9.39.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.1"
+  }
+}
