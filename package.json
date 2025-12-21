@@ -3,6 +3,11 @@
   "displayName": "Order Import",
   "description": "Ordena imports React",
   "version": "0.0.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josemoura212/order-import.git"
+  },
   "engines": {
     "vscode": "^1.107.0"
   },
