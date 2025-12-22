@@ -8,7 +8,6 @@ interface ImportStatement {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log("Order Import extension is now active!");
 
   let isFormatting = false;
 
@@ -62,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
       );
 
       const status = !currentValue ? "ATIVADA" : "DESATIVADA";
-      vscode.window.showInformationMessage(`Formatação ao salvar ${status}`);
+      vscode.window.showInformationMessage(`Order Import: Formatação ao salvar ${status}`);
     }
   );
 
@@ -75,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
         "normal",
         vscode.ConfigurationTarget.Global
       );
-      vscode.window.showInformationMessage("Tipo 1 (Normal) ativado");
+      vscode.window.showInformationMessage("Order Import: Tipo 1 (Normal) ativado");
     }
   );
 
@@ -88,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
         "aligned",
         vscode.ConfigurationTarget.Global
       );
-      vscode.window.showInformationMessage("Tipo 2 (Alinhado) ativado");
+      vscode.window.showInformationMessage("Order Import: Tipo 2 (Alinhado) ativado");
     }
   );
 
