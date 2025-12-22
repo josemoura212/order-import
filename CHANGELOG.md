@@ -5,6 +5,15 @@ All notable changes to the "Order Import" extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Automatic removal of unused imports (configurable, default: false)
+- Smart detection of used identifiers in code
+- Protection for side-effect and namespace imports
+- Professional README with badges and feature highlights
+- Complete CHANGELOG following Keep a Changelog format
+
 ## [0.0.5] - 2025-12-22
 
 ### Added

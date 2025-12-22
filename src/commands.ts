@@ -41,10 +41,10 @@ export function registerToggleFormatOnSave(
         vscode.ConfigurationTarget.Global
       );
 
-      const status = !currentValue ? "ATIVADA" : "DESATIVADA";
-      vscode.window.showInformationMessage(
-        `Order Import: Formatação ao salvar ${status}`
-      );
+      const messageKey = !currentValue
+        ? "message.formatOnSave.enabled"
+        : "message.formatOnSave.disabled";
+      vscode.window.showInformationMessage(vscode.l10n.t(messageKey));
     }
   );
 
@@ -70,7 +70,7 @@ export function registerSelectNormal(context: vscode.ExtensionContext): void {
         vscode.ConfigurationTarget.Global
       );
       vscode.window.showInformationMessage(
-        "Order Import: Tipo 1 (Normal) ativado"
+        vscode.l10n.t("message.formatStyle.normal")
       );
     }
   );
@@ -97,7 +97,7 @@ export function registerSelectAligned(context: vscode.ExtensionContext): void {
         vscode.ConfigurationTarget.Global
       );
       vscode.window.showInformationMessage(
-        "Order Import: Tipo 2 (Alinhado) ativado"
+        vscode.l10n.t("message.formatStyle.aligned")
       );
     }
   );
@@ -130,10 +130,10 @@ export function registerToggleMuiOptimization(
         vscode.ConfigurationTarget.Global
       );
 
-      const status = !currentValue ? "ATIVADA" : "DESATIVADA";
-      vscode.window.showInformationMessage(
-        `Order Import: Otimização MUI ${status}`
-      );
+      const messageKey = !currentValue
+        ? "message.muiOptimization.enabled"
+        : "message.muiOptimization.disabled";
+      vscode.window.showInformationMessage(vscode.l10n.t(messageKey));
     }
   );
 

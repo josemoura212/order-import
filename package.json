@@ -1,7 +1,7 @@
 {
   "name": "order-import",
-  "displayName": "Order Import",
-  "description": "Ordena imports React",
+  "displayName": "%extension.displayName%",
+  "description": "%extension.description%",
   "publisher": "josAugusto",
   "version": "0.0.5",
   "icon": "icon.png",
@@ -34,23 +34,23 @@
     "commands": [
       {
         "command": "order-import.toggleFormatOnSave",
-        "title": "Order Import: Ativar/Desativar Formatação ao Salvar"
+        "title": "%command.toggleFormatOnSave%"
       },
       {
         "command": "order-import.organizeImports",
-        "title": "Order Import: Formatar"
+        "title": "%command.organizeImports%"
       },
       {
         "command": "order-import.selectNormal",
-        "title": "Order Import: Selecionar Tipo 1 (Normal)"
+        "title": "%command.selectNormal%"
       },
       {
         "command": "order-import.selectAligned",
-        "title": "Order Import: Selecionar Tipo 2 (Alinhado)"
+        "title": "%command.selectAligned%"
       },
       {
         "command": "order-import.toggleMuiOptimization",
-        "title": "Order Import: Ativar/Desativar Otimização MUI"
+        "title": "%command.toggleMuiOptimization%"
       }
     ],
     "keybindings": [
@@ -67,7 +67,7 @@
         "orderImport.organizeOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Organizar imports automaticamente ao salvar o arquivo"
+          "description": "%config.organizeOnSave.description%"
         },
         "orderImport.formatStyle": {
           "type": "string",
@@ -76,7 +76,7 @@
             "normal"
           ],
           "default": "aligned",
-          "description": "Estilo de formatação: 'aligned' (alinhado pelo from) ou 'normal' (1 espaço)",
+          "description": "%config.formatStyle.description%",
           "enumDescriptions": [
             "Alinha todos os imports pelo 'from' com espaços extras",
             "Usa apenas 1 espaço antes do 'from'"
@@ -85,12 +85,12 @@
         "orderImport.muiOptimization": {
           "type": "boolean",
           "default": false,
-          "description": "Otimizar imports do Material UI para tree-shaking (ex: import Typography from '@mui/material/Typography')"
+          "description": "%config.muiOptimization.description%"
         },
         "orderImport.groupByType": {
           "type": "boolean",
           "default": false,
-          "description": "Agrupar imports por tipo (externos, aliases, relativos) com linha em branco entre grupos"
+          "description": "%config.groupByType.description%"
         },
         "orderImport.pathAliases": {
           "type": "array",
@@ -102,12 +102,17 @@
             "@utils/",
             "@hooks/"
           ],
-          "description": "Lista de path aliases do projeto (ex: @/, ~/, @components/)"
+          "description": "%config.pathAliases.description%"
         },
         "orderImport.optimizeBarrelFiles": {
           "type": "boolean",
           "default": false,
           "description": "Otimizar imports de barrel files locais (ex: './components' -> './components/Button')"
+        },
+        "orderImport.removeUnusedImports": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.removeUnusedImports.description%"
         }
       }
     }

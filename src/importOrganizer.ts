@@ -178,6 +178,91 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
 }
 
 /**
+ * Removes unused imports from the import list.
+ *
+ * Analyzes the document content to identify which imports are actually used
+ * and removes those that are not referenced anywhere in the code.
+ *
+ * Detection includes:
+ * - Named imports: checks if identifiers are used in the code
+ * - Default imports: checks if the default name is used
+ * - Namespace imports: checks if the namespace is used
+ * - Side-effect imports: always kept (cannot be determined if used)
+ *
+ * @param imports - Array of import statements to filter
+ * @param documentText - Full text content of the document
+ *
+ * @example
+ * ```typescript
+ * removeUnusedImports(imports, document.getText());
+ * // Removes: import { Button } from 'react' if Button is never used
+ * ```
+ */
+function removeUnusedImports(
+  imports: ImportStatement[],
+  documentText: string
+): void {
+  const lines = documentText.split("\n");
+
+  // Find the last import line to get code after imports
+  let lastImportLine = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith("import ")) {
+      lastImportLine = i;
+    }
+  }
+
+  // Get code after imports (where usage happens)
+  const codeAfterImports = lines.slice(lastImportLine + 1).join("\n");
+
+  for (let i = imports.length - 1; i >= 0; i--) {
+    const imp = imports[i];
+
+    // Always keep side-effect imports (like CSS or fix-ts-path)
+    if (imp.isSideEffect) {
+      continue;
+    }
+
+    // Always keep namespace imports (import * as X)
+    if (imp.isAsterisk) {
+      continue;
+    }
+
+    let isUsed = false;
+
+    if (imp.isNamed) {
+      // Named imports: check each identifier
+      const namedMatch = imp.named.match(/{([^}]+)}/);
+      if (namedMatch) {
+        const identifiers = namedMatch[1]
+          .split(",")
+          .map((id) => id.trim().split(" as ")[0].trim());
+
+        // Check if any identifier is used in the code
+        isUsed = identifiers.some((identifier) => {
+          // Create regex to find identifier as a word boundary
+          const regex = new RegExp(`\\b${identifier}\\b`, "g");
+          return regex.test(codeAfterImports);
+        });
+      }
+    } else {
+      // Default imports: check if the name is used
+      const identifier = imp.named.trim();
+      if (identifier) {
+        const regex = new RegExp(`\\b${identifier}\\b`, "g");
+        isUsed = regex.test(codeAfterImports);
+      }
+    }
+
+    // Remove if not used
+    if (!isUsed) {
+      imports.splice(i, 1);
+    }
+  }
+}
+
+/**
  * Organizes and formats import statements in a VS Code document.
  *
  * Main function that orchestrates the entire import organization process:
@@ -269,6 +354,7 @@ export function organizeImports(
     forceStyle || config.get<string>("formatStyle", "aligned");
   const muiOptimization = config.get<boolean>("muiOptimization", false);
   const groupByType = config.get<boolean>("groupByType", true);
+  const removeUnused = config.get<boolean>("removeUnusedImports", false);
   const pathAliases = config.get<string[]>("pathAliases", [
     "@/",
     "~/",
@@ -280,6 +366,10 @@ export function organizeImports(
 
   if (muiOptimization) {
     optimizeMuiImports(imports);
+  }
+
+  if (removeUnused) {
+    removeUnusedImports(imports, text);
   }
 
   if (groupByType) {
