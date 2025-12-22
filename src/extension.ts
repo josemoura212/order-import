@@ -7,7 +7,7 @@ import {
   registerOrganizeImportsCommand,
 } from "./commands";
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
   let isFormatting = false;
 
   const saveListener = vscode.workspace.onWillSaveTextDocument((event) => {
@@ -54,4 +54,4 @@ export function activate(context: vscode.ExtensionContext) {
   registerOrganizeImportsCommand(context);
 }
 
-export function deactivate() {}
+export function deactivate(): void {}
