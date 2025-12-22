@@ -41,10 +41,10 @@ export function registerToggleFormatOnSave(
         vscode.ConfigurationTarget.Global
       );
 
-      const messageKey = !currentValue
-        ? "message.formatOnSave.enabled"
-        : "message.formatOnSave.disabled";
-      vscode.window.showInformationMessage(vscode.l10n.t(messageKey));
+      const message = !currentValue
+        ? "Order Import: Format on save ENABLED"
+        : "Order Import: Format on save DISABLED";
+      vscode.window.showInformationMessage(message);
     }
   );
 
@@ -70,7 +70,7 @@ export function registerSelectNormal(context: vscode.ExtensionContext): void {
         vscode.ConfigurationTarget.Global
       );
       vscode.window.showInformationMessage(
-        vscode.l10n.t("message.formatStyle.normal")
+        "Order Import: Type 1 (Normal) enabled"
       );
     }
   );
@@ -97,7 +97,7 @@ export function registerSelectAligned(context: vscode.ExtensionContext): void {
         vscode.ConfigurationTarget.Global
       );
       vscode.window.showInformationMessage(
-        vscode.l10n.t("message.formatStyle.aligned")
+        "Order Import: Type 2 (Aligned) enabled"
       );
     }
   );
@@ -130,10 +130,10 @@ export function registerToggleMuiOptimization(
         vscode.ConfigurationTarget.Global
       );
 
-      const messageKey = !currentValue
-        ? "message.muiOptimization.enabled"
-        : "message.muiOptimization.disabled";
-      vscode.window.showInformationMessage(vscode.l10n.t(messageKey));
+      const message = !currentValue
+        ? "Order Import: MUI Optimization ENABLED"
+        : "Order Import: MUI Optimization DISABLED";
+      vscode.window.showInformationMessage(message);
     }
   );
 
