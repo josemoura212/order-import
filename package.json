@@ -119,6 +119,7 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
+    "publish:ovsx": "ovsx publish",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
@@ -155,6 +156,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "npm-run-all": "^4.1.5",
+    "ovsx": "^0.10.7",
     "prettier": "^3.4.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1"
