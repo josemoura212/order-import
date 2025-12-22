@@ -34,23 +34,23 @@
     "commands": [
       {
         "command": "order-import.toggleFormatOnSave",
-        "title": "%command.toggleFormatOnSave%"
+        "title": "Order Import: Toggle Format on Save"
       },
       {
         "command": "order-import.organizeImports",
-        "title": "%command.organizeImports%"
+        "title": "Order Import: Organize Imports"
       },
       {
         "command": "order-import.selectNormal",
-        "title": "%command.selectNormal%"
+        "title": "Order Import: Select Normal Format"
       },
       {
         "command": "order-import.selectAligned",
-        "title": "%command.selectAligned%"
+        "title": "Order Import: Select Aligned Format"
       },
       {
         "command": "order-import.toggleMuiOptimization",
-        "title": "%command.toggleMuiOptimization%"
+        "title": "Order Import: Toggle MUI Optimization"
       }
     ],
     "keybindings": [
@@ -67,7 +67,7 @@
         "orderImport.organizeOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "%config.organizeOnSave.description%"
+          "description": "Automatically organize imports when saving files"
         },
         "orderImport.formatStyle": {
           "type": "string",
@@ -76,21 +76,21 @@
             "normal"
           ],
           "default": "aligned",
-          "description": "%config.formatStyle.description%",
+          "description": "Choose import formatting style: 'normal' (by length) or 'aligned' (alphabetically with aligned 'from')",
           "enumDescriptions": [
-            "Alinha todos os imports pelo 'from' com espaços extras",
-            "Usa apenas 1 espaço antes do 'from'"
+            "Aligns all imports by 'from' with extra spaces",
+            "Uses only 1 space before 'from'"
           ]
         },
         "orderImport.muiOptimization": {
           "type": "boolean",
           "default": false,
-          "description": "%config.muiOptimization.description%"
+          "description": "Optimize Material-UI imports for better tree-shaking (converts barrel imports to direct component imports)"
         },
         "orderImport.groupByType": {
           "type": "boolean",
           "default": false,
-          "description": "%config.groupByType.description%"
+          "description": "Group imports by type (external, path aliases, relative) with blank lines between groups"
         },
         "orderImport.pathAliases": {
           "type": "array",
@@ -102,17 +102,17 @@
             "@utils/",
             "@hooks/"
           ],
-          "description": "%config.pathAliases.description%"
+          "description": "List of path aliases used in your project (e.g., '@/', '~/', '@components/')"
         },
         "orderImport.optimizeBarrelFiles": {
           "type": "boolean",
           "default": false,
-          "description": "Otimizar imports de barrel files locais (ex: './components' -> './components/Button')"
+          "description": "Optimize imports from local barrel files (e.g., './components' -> './components/Button')"
         },
         "orderImport.removeUnusedImports": {
           "type": "boolean",
           "default": false,
-          "description": "%config.removeUnusedImports.description%"
+          "description": "Automatically remove imports that are not used in the code"
         }
       }
     }
