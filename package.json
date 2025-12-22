@@ -2,7 +2,9 @@
   "name": "order-import",
   "displayName": "Order Import",
   "description": "Ordena imports React",
+  "publisher": "josAugusto",
   "version": "0.0.2",
+  "icon": "icon.png",
   "license": "MIT",
   "repository": {
     "type": "git",
