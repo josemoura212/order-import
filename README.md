@@ -1,5 +1,10 @@
 # Order Import
 
+[![Version](https://img.shields.io/visual-studio-marketplace/v/josAugusto.order-import?style=flat-square&label=VS%20Code%20Marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=josAugusto.order-import)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/josAugusto.order-import?style=flat-square&label=Downloads)](https://marketplace.visualstudio.com/items?itemName=josAugusto.order-import)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/josAugusto.order-import?style=flat-square&label=Rating)](https://marketplace.visualstudio.com/items?itemName=josAugusto.order-import)
+[![License](https://img.shields.io/github/license/josemoura212/order-import?style=flat-square)](https://github.com/josemoura212/order-import/blob/main/LICENSE)
+
 Extensão para organizar e formatar imports automaticamente em arquivos JavaScript/TypeScript/React.
 
 ## Funcionalidades
@@ -75,17 +80,76 @@ import ListCategory    from './features/categories/list-category';
 ## Comandos
 
 - **Order Import: Ativar/Desativar Formatação ao Salvar**: Liga/desliga formatação automática
-- **Order Import: Formatar**: Formata os imports no arquivo atual
+- **Order Import: Formatar** (`Ctrl+Alt+R` / `Cmd+Alt+R`): Formata os imports no arquivo atual
 - **Order Import: Selecionar Tipo 1 (Normal)**: Ativa formatação normal (ordenado por tamanho)
 - **Order Import: Selecionar Tipo 2 (Alinhado)**: Ativa formatação alinhada (alinhado pelo from)
+- **Order Import: Ativar/Desativar Otimização MUI**: Liga/desliga otimização de imports do Material-UI
 
 ## Configurações
 
-- `orderImport.organizeOnSave`: Ativar formatação ao salvar (padrão: true)
-- `orderImport.formatStyle`: Estilo de formatação - "normal" ou "aligned" (padrão: "aligned")
+- `orderImport.organizeOnSave`: Ativar formatação ao salvar (padrão: `true`)
+- `orderImport.formatStyle`: Estilo de formatação - `"normal"` ou `"aligned"` (padrão: `"aligned"`)
+- `orderImport.muiOptimization`: Otimizar imports do Material-UI para tree-shaking (padrão: `false`)
+- `orderImport.groupByType`: Agrupar imports por tipo com linha em branco entre grupos (padrão: `false`)
+- `orderImport.pathAliases`: Lista de path aliases do projeto (padrão: `["@/", "~/", "@components/", ...]`)
+
+## Recursos
+
+### 🎯 Otimização Material-UI
+
+Quando ativado, converte automaticamente imports do MUI para melhor tree-shaking:
+
+```typescript
+// Antes
+import { Button, TextField, Typography } from '@mui/material';
+
+// Depois
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+```
+
+### 📦 Agrupamento por Tipo
+
+Organiza imports em grupos separados por linhas em branco:
+
+```typescript
+// Externos (node_modules)
+import React from 'react';
+import Button from '@mui/material/Button';
+
+// Path aliases
+import { useAuth } from '@/hooks/useAuth';
+import { api } from '@/services/api';
+
+// Relativos
+import { Header } from './components/Header';
+import styles from './styles.module.css';
+```
 
 ## Uso
 
 1. Selecione o tipo de formatação desejado (Tipo 1 ou Tipo 2)
-2. Use o comando "Formatar" ou salve o arquivo (se ativado)
-3. Os imports serão organizados automaticamente
+2. Configure as opções desejadas (otimização MUI, agrupamento, etc.)
+3. Use o atalho `Ctrl+Alt+R` ou salve o arquivo (se formatação automática estiver ativada)
+4. Os imports serão organizados automaticamente seguindo suas preferências
+
+## Tecnologias Suportadas
+
+- ✅ JavaScript (ES6+)
+- ✅ TypeScript
+- ✅ React / JSX / TSX
+- ✅ Material-UI (@mui/material, @mui/icons-material, @mui/lab)
+- ✅ Path aliases personalizados
+
+## Licença
+
+MIT © [José Augusto](https://github.com/josemoura212)
+
+## Contribuindo
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests no [repositório do GitHub](https://github.com/josemoura212/order-import).
+
+---
+
+**Aproveite a organização automática de imports!** 🚀
