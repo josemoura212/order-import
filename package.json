@@ -3,7 +3,7 @@
   "displayName": "Order Import",
   "description": "Automatically organizes and formats JavaScript/TypeScript imports with support for MUI optimization, import grouping, and unused import removal",
   "publisher": "josAugusto",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "icon": "icon.png",
   "license": "MIT",
   "repository": {
