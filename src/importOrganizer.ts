@@ -1,6 +1,51 @@
 import * as vscode from "vscode";
 import { ImportStatement } from "./types";
 
+function optimizeMuiImports(imports: ImportStatement[]): void {
+  const newImports: ImportStatement[] = [];
+
+  for (let i = imports.length - 1; i >= 0; i--) {
+    const imp = imports[i];
+
+    if (
+      imp.isNamed &&
+      (imp.path.includes("@mui/material") ||
+        imp.path.includes("@mui/icons-material") ||
+        imp.path.includes("@mui/lab") ||
+        imp.path.includes("@mui/x-data-grid") ||
+        imp.path.includes("@mui/x-date-pickers"))
+    ) {
+      const componentsMatch = imp.named.match(/{([^}]+)}/);
+      if (componentsMatch) {
+        const components = componentsMatch[1]
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0);
+
+        if (components.length > 0) {
+          const basePath = imp.path.replace(/['"]/g, "");
+
+          for (const component of components) {
+            newImports.push({
+              full: `import ${component} from '${basePath}/${component}';`,
+              named: component,
+              path: `'${basePath}/${component}'`,
+              isNamed: false,
+              isAsterisk: false,
+              isFixTsPath: false,
+              isSideEffect: false,
+            });
+          }
+
+          imports.splice(i, 1);
+        }
+      }
+    }
+  }
+
+  imports.push(...newImports);
+}
+
 export function organizeImports(
   document: vscode.TextDocument,
   forceStyle?: string
@@ -68,6 +113,11 @@ export function organizeImports(
   const config = vscode.workspace.getConfiguration("orderImport");
   const formatStyle =
     forceStyle || config.get<string>("formatStyle", "aligned");
+  const muiOptimization = config.get<boolean>("muiOptimization", false);
+
+  if (muiOptimization) {
+    optimizeMuiImports(imports);
+  }
 
   const fixTsPathImports = imports.filter((imp) => imp.isFixTsPath);
   const asteriskImports = imports.filter(

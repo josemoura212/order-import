@@ -16,6 +16,18 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "react",
+    "typescript",
+    "imports",
+    "organize",
+    "format",
+    "mui",
+    "material-ui",
+    "tree-shaking",
+    "bundle-size",
+    "import-organizer"
+  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
@@ -35,6 +47,10 @@
       {
         "command": "order-import.selectAligned",
         "title": "Order Import: Selecionar Tipo 2 (Alinhado)"
+      },
+      {
+        "command": "order-import.toggleMuiOptimization",
+        "title": "Order Import: Ativar/Desativar Otimização MUI"
       }
     ],
     "configuration": {
@@ -57,6 +73,11 @@
             "Alinha todos os imports pelo 'from' com espaços extras",
             "Usa apenas 1 espaço antes do 'from'"
           ]
+        },
+        "orderImport.muiOptimization": {
+          "type": "boolean",
+          "default": false,
+          "description": "Otimizar imports do Material UI para tree-shaking (ex: import Typography from '@mui/material/Typography')"
         }
       }
     }

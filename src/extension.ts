@@ -4,6 +4,7 @@ import {
   registerToggleFormatOnSave,
   registerSelectNormal,
   registerSelectAligned,
+  registerToggleMuiOptimization,
   registerOrganizeImportsCommand,
 } from "./commands";
 
@@ -51,6 +52,7 @@ export function activate(context: vscode.ExtensionContext): void {
   registerToggleFormatOnSave(context);
   registerSelectNormal(context);
   registerSelectAligned(context);
+  registerToggleMuiOptimization(context);
   registerOrganizeImportsCommand(context);
 }
 

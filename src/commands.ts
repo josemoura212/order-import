@@ -63,6 +63,30 @@ export function registerSelectAligned(context: vscode.ExtensionContext): void {
   context.subscriptions.push(selectAligned);
 }
 
+export function registerToggleMuiOptimization(
+  context: vscode.ExtensionContext
+): void {
+  const toggleMuiOptimization = vscode.commands.registerCommand(
+    "order-import.toggleMuiOptimization",
+    async () => {
+      const config = vscode.workspace.getConfiguration("orderImport");
+      const currentValue = config.get<boolean>("muiOptimization", false);
+      await config.update(
+        "muiOptimization",
+        !currentValue,
+        vscode.ConfigurationTarget.Global
+      );
+
+      const status = !currentValue ? "ATIVADA" : "DESATIVADA";
+      vscode.window.showInformationMessage(
+        `Order Import: Otimização MUI ${status}`
+      );
+    }
+  );
+
+  context.subscriptions.push(toggleMuiOptimization);
+}
+
 export function registerOrganizeImportsCommand(
   context: vscode.ExtensionContext
 ): void {
