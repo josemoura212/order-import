@@ -1,7 +1,7 @@
 {
   "name": "order-import",
-  "displayName": "%extension.displayName%",
-  "description": "%extension.description%",
+  "displayName": "Order Import",
+  "description": "Automatically organizes and formats JavaScript/TypeScript imports with support for MUI optimization, import grouping, and unused import removal",
   "publisher": "josAugusto",
   "version": "0.0.6",
   "icon": "icon.png",
