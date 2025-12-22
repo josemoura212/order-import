@@ -5,10 +5,24 @@ Extensão para organizar e formatar imports automaticamente em arquivos JavaScri
 ## Funcionalidades
 
 - Organiza imports automaticamente ao salvar
-- Separa imports com `{}` (named) dos imports sem `{}` (default)
+- Prioriza imports especiais (fix-ts-path) sempre no topo
+- Separa imports por tipo seguindo ordem de precedência
 - Dois estilos de formatação:
   - **Tipo 1 (Normal)**: Ordena pelo tamanho do nome (menor primeiro)
   - **Tipo 2 (Alinhado)**: Ordena alfabeticamente pelo caminho e alinha pelo 'from'
+
+## Ordem de Precedência
+
+Os imports são organizados na seguinte ordem de prioridade:
+
+1. **Side-effect imports do fix-ts-path** (ex: `import '../utils/fix-ts-path';`)
+2. **Imports com asterisco (*)** (ex: `import * as React from 'react';`)
+3. **Named imports {}** (ex: `import { Component } from 'react';`)
+4. **Default imports** (ex: `import React from 'react';`)
+
+Dentro de cada categoria, os imports são ordenados:
+- **Tipo 1 (Normal)**: Por tamanho do nome (menor primeiro)
+- **Tipo 2 (Alinhado)**: Alfabeticamente pelo caminho
 
 ## Exemplos
 
@@ -40,18 +54,22 @@ Antes:
 ```typescript
 import { Header } from './components/header';
 import Box from '@mui/material/Box';
+import * as React from 'react';
 import { Layout } from './components/layout';
 import { appThema } from './config/theme';
+import '../utils/fix-ts-path';
 import ListCategory from './features/categories/list-category';
 ```
 
 Depois:
 ```typescript
-import { Header }        from './components/header';
-import { Layout }        from './components/layout';
-import { appThema }      from './config/theme';
-import Box               from '@mui/material/Box';
-import ListCategory      from './features/categories/list-category';
+import '../utils/fix-ts-path';
+import * as React      from 'react';
+import { Header }      from './components/header';
+import { Layout }      from './components/layout';
+import { appThema }    from './config/theme';
+import Box             from '@mui/material/Box';
+import ListCategory    from './features/categories/list-category';
 ```
 
 ## Comandos
