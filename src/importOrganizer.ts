@@ -1,6 +1,137 @@
 import * as vscode from "vscode";
 import { ImportStatement } from "./types";
 
+/**
+ * Classifies import statements by their type (external, alias, or relative).
+ *
+ * This function analyzes each import path and categorizes it as:
+ * - `external`: Imports from node_modules (e.g., 'react', '@mui/material')
+ * - `alias`: Imports using path aliases (e.g., '@/', '~/components')
+ * - `relative`: Imports using relative paths (e.g., './Header', '../utils')
+ *
+ * @param imports - Array of import statements to classify
+ * @param pathAliases - Array of configured path aliases to detect
+ *
+ * @example
+ * ```typescript
+ * const imports = [{ path: "'react'" }, { path: "'@/utils'" }];
+ * classifyImportTypes(imports, ['@/']);
+ * // imports[0].importType === 'external'
+ * // imports[1].importType === 'alias'
+ * ```
+ */
+function classifyImportTypes(
+  imports: ImportStatement[],
+  pathAliases: string[]
+): void {
+  for (const imp of imports) {
+    const path = imp.path.replace(/['"]/g, "");
+
+    // Relativos (começam com . ou ..)
+    if (path.startsWith("./") || path.startsWith("../")) {
+      imp.importType = "relative";
+    }
+    // Path aliases
+    else if (pathAliases.some((alias) => path.startsWith(alias))) {
+      imp.importType = "alias";
+    }
+    // Externos (node_modules)
+    else {
+      imp.importType = "external";
+    }
+  }
+}
+
+/**
+ * Groups import statements by their type with blank line separators.
+ *
+ * Creates a hierarchical organization of imports:
+ * 1. External imports (node_modules)
+ * 2. Blank line separator
+ * 3. Alias imports (path aliases)
+ * 4. Blank line separator
+ * 5. Relative imports (local files)
+ *
+ * @param imports - Array of classified import statements
+ * @returns Reorganized array with blank line markers between groups
+ *
+ * @example
+ * ```typescript
+ * const grouped = groupImportsByType(imports);
+ * // Result: [external1, external2, {blank}, alias1, {blank}, relative1]
+ * ```
+ */
+function groupImportsByType(imports: ImportStatement[]): ImportStatement[] {
+  const external = imports.filter((imp) => imp.importType === "external");
+  const alias = imports.filter((imp) => imp.importType === "alias");
+  const relative = imports.filter((imp) => imp.importType === "relative");
+
+  const result: ImportStatement[] = [];
+
+  if (external.length > 0) {
+    result.push(...external);
+    // Adicionar marcador para linha em branco
+    if (alias.length > 0 || relative.length > 0) {
+      result.push({
+        full: "",
+        named: "",
+        path: "",
+        isNamed: false,
+        isAsterisk: false,
+        isFixTsPath: false,
+        isSideEffect: false,
+        importType: "external",
+      } as ImportStatement);
+    }
+  }
+
+  if (alias.length > 0) {
+    result.push(...alias);
+    if (relative.length > 0) {
+      result.push({
+        full: "",
+        named: "",
+        path: "",
+        isNamed: false,
+        isAsterisk: false,
+        isFixTsPath: false,
+        isSideEffect: false,
+        importType: "alias",
+      } as ImportStatement);
+    }
+  }
+
+  if (relative.length > 0) {
+    result.push(...relative);
+  }
+
+  return result;
+}
+
+/**
+ * Optimizes Material-UI imports for better tree-shaking and bundle size.
+ *
+ * Converts named imports from barrel files to direct component imports
+ * following MUI's recommended approach for minimizing bundle size:
+ *
+ * Before: `import { Button, TextField } from '@mui/material';`
+ * After:
+ * ```typescript
+ * import Button from '@mui/material/Button';
+ * import TextField from '@mui/material/TextField';
+ * ```
+ *
+ * This optimization applies to all MUI packages:
+ * - @mui/material
+ * - @mui/icons-material
+ * - @mui/lab
+ * - @mui/x-data-grid
+ * - @mui/x-date-pickers
+ *
+ * @param imports - Array of import statements to optimize
+ *
+ * @see https://mui.com/material-ui/guides/minimizing-bundle-size/
+ */
 function optimizeMuiImports(imports: ImportStatement[]): void {
   const newImports: ImportStatement[] = [];
 
@@ -46,6 +177,29 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
   imports.push(...newImports);
 }
 
+/**
+ * Organizes and formats import statements in a VS Code document.
+ *
+ * Main function that orchestrates the entire import organization process:
+ * 1. Extracts all import statements from the document
+ * 2. Optionally optimizes MUI imports for tree-shaking
+ * 3. Classifies imports by type (external, alias, relative)
+ * 4. Groups imports with blank line separators
+ * 5. Sorts imports within each category
+ * 6. Formats imports according to the selected style (aligned or normal)
+ *
+ * @param document - VS Code text document containing the imports
+ * @param forceStyle - Optional style override ('aligned' or 'normal')
+ * @returns Array of text edits to apply to the document
+ *
+ * @example
+ * ```typescript
+ * const edits = organizeImports(document);
+ * editor.edit(editBuilder => {
+ *   edits.forEach(edit => editBuilder.replace(edit.range, edit.newText));
+ * });
+ * ```
+ */
 export function organizeImports(
   document: vscode.TextDocument,
   forceStyle?: string
@@ -114,9 +268,22 @@ export function organizeImports(
   const formatStyle =
     forceStyle || config.get<string>("formatStyle", "aligned");
   const muiOptimization = config.get<boolean>("muiOptimization", false);
+  const groupByType = config.get<boolean>("groupByType", true);
+  const pathAliases = config.get<string[]>("pathAliases", [
+    "@/",
+    "~/",
+    "@components/",
+    "@services/",
+    "@utils/",
+    "@hooks/",
+  ]);
 
   if (muiOptimization) {
     optimizeMuiImports(imports);
+  }
+
+  if (groupByType) {
+    classifyImportTypes(imports, pathAliases);
   }
 
   const fixTsPathImports = imports.filter((imp) => imp.isFixTsPath);
@@ -137,77 +304,54 @@ export function organizeImports(
   namedImports.sort((a, b) => a.path.localeCompare(b.path));
   defaultImports.sort((a, b) => a.path.localeCompare(b.path));
 
+  // Agrupar por tipo se ativado
+  const groupedImports = groupByType
+    ? groupImportsByType([
+        ...fixTsPathImports,
+        ...asteriskImports,
+        ...namedImports,
+        ...defaultImports,
+      ])
+    : [
+        ...fixTsPathImports,
+        ...asteriskImports,
+        ...namedImports,
+        ...defaultImports,
+      ];
+
   let allFormattedImports: string[];
 
   if (formatStyle === "aligned") {
-    const allImports = [
-      ...fixTsPathImports,
-      ...asteriskImports,
-      ...namedImports,
-      ...defaultImports,
-    ];
-    const maxLength = Math.max(...allImports.map((imp) => imp.named.length));
+    const maxLength = Math.max(
+      ...groupedImports
+        .filter((imp) => imp.full !== "")
+        .map((imp) => imp.named.length)
+    );
 
-    const formattedFixTsPath = fixTsPathImports.map((imp) => {
+    allFormattedImports = groupedImports.map((imp) => {
+      // Marcador de linha em branco
+      if (imp.full === "") {
+        return "";
+      }
+
       if (imp.isSideEffect) {
         return `import ${imp.path};`;
       }
       const spaces = " ".repeat(maxLength - imp.named.length + 1);
       return `import ${imp.named}${spaces}from ${imp.path};`;
     });
-
-    const formattedAsterisk = asteriskImports.map((imp) => {
-      const spaces = " ".repeat(maxLength - imp.named.length + 1);
-      return `import ${imp.named}${spaces}from ${imp.path};`;
-    });
-
-    const formattedNamed = namedImports.map((imp) => {
-      const spaces = " ".repeat(maxLength - imp.named.length + 1);
-      return `import ${imp.named}${spaces}from ${imp.path};`;
-    });
-
-    const formattedDefault = defaultImports.map((imp) => {
-      const spaces = " ".repeat(maxLength - imp.named.length + 1);
-      return `import ${imp.named}${spaces}from ${imp.path};`;
-    });
-
-    allFormattedImports = [
-      ...formattedFixTsPath,
-      ...formattedAsterisk,
-      ...formattedNamed,
-      ...formattedDefault,
-    ];
   } else {
-    fixTsPathImports.sort((a, b) => a.named.length - b.named.length);
-    asteriskImports.sort((a, b) => a.named.length - b.named.length);
-    namedImports.sort((a, b) => a.named.length - b.named.length);
-    defaultImports.sort((a, b) => a.named.length - b.named.length);
+    allFormattedImports = groupedImports.map((imp) => {
+      // Marcador de linha em branco
+      if (imp.full === "") {
+        return "";
+      }
 
-    const formattedFixTsPath = fixTsPathImports.map((imp) => {
       if (imp.isSideEffect) {
         return `import ${imp.path};`;
       }
       return `import ${imp.named} from ${imp.path};`;
     });
-
-    const formattedAsterisk = asteriskImports.map((imp) => {
-      return `import ${imp.named} from ${imp.path};`;
-    });
-
-    const formattedNamed = namedImports.map((imp) => {
-      return `import ${imp.named} from ${imp.path};`;
-    });
-
-    const formattedDefault = defaultImports.map((imp) => {
-      return `import ${imp.named} from ${imp.path};`;
-    });
-
-    allFormattedImports = [
-      ...formattedFixTsPath,
-      ...formattedAsterisk,
-      ...formattedNamed,
-      ...formattedDefault,
-    ];
   }
 
   const startPos = new vscode.Position(importStartLine, 0);

@@ -53,6 +53,14 @@
         "title": "Order Import: Ativar/Desativar Otimização MUI"
       }
     ],
+    "keybindings": [
+      {
+        "command": "order-import.organizeImports",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorTextFocus"
+      }
+    ],
     "configuration": {
       "title": "Order Import",
       "properties": {
@@ -78,6 +86,28 @@
           "type": "boolean",
           "default": false,
           "description": "Otimizar imports do Material UI para tree-shaking (ex: import Typography from '@mui/material/Typography')"
+        },
+        "orderImport.groupByType": {
+          "type": "boolean",
+          "default": false,
+          "description": "Agrupar imports por tipo (externos, aliases, relativos) com linha em branco entre grupos"
+        },
+        "orderImport.pathAliases": {
+          "type": "array",
+          "default": [
+            "@/",
+            "~/",
+            "@components/",
+            "@services/",
+            "@utils/",
+            "@hooks/"
+          ],
+          "description": "Lista de path aliases do projeto (ex: @/, ~/, @components/)"
+        },
+        "orderImport.optimizeBarrelFiles": {
+          "type": "boolean",
+          "default": false,
+          "description": "Otimizar imports de barrel files locais (ex: './components' -> './components/Button')"
         }
       }
     }
