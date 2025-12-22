@@ -1,7 +1,7 @@
 {
   "name": "order-import",
   "displayName": "Order Import",
-  "description": "Automatically organizes and formats JavaScript/TypeScript imports with support for MUI optimization, import grouping, and unused import removal",
+  "description": "Automatically organizes and formats JavaScript/TypeScript imports by length (shortest first) with support for MUI optimization and unused import removal. Maintains strict precedence: fix-ts-path → asterisk → named → default imports.",
   "publisher": "josAugusto",
   "version": "0.0.9",
   "icon": "icon.png",
@@ -11,7 +11,7 @@
     "url": "https://github.com/josemoura212/order-import.git"
   },
   "engines": {
-    "vscode": "^1.101.0"
+    "vscode": "^1.104.0"
   },
   "categories": [
     "Other"
@@ -87,23 +87,6 @@
           "default": false,
           "description": "Optimize Material-UI imports for better tree-shaking (converts barrel imports to direct component imports)"
         },
-        "orderImport.groupByType": {
-          "type": "boolean",
-          "default": false,
-          "description": "Group imports by type (external, path aliases, relative) with blank lines between groups"
-        },
-        "orderImport.pathAliases": {
-          "type": "array",
-          "default": [
-            "@/",
-            "~/",
-            "@components/",
-            "@services/",
-            "@utils/",
-            "@hooks/"
-          ],
-          "description": "List of path aliases used in your project (e.g., '@/', '~/', '@components/')"
-        },
         "orderImport.optimizeBarrelFiles": {
           "type": "boolean",
           "default": false,
@@ -145,7 +128,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "@types/vscode": "^1.100.0",
+    "@types/vscode": "^1.104.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
