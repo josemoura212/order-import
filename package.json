@@ -3,7 +3,7 @@
   "displayName": "Order Import",
   "description": "Automatically organizes and formats JavaScript/TypeScript imports by length (shortest first) with support for MUI optimization and unused import removal. Maintains strict precedence: fix-ts-path → asterisk → named → default imports.",
   "publisher": "josAugusto",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "icon": "icon.png",
   "license": "MIT",
   "repository": {
