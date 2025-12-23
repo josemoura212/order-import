@@ -1,2 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+export PATH="$HOME/.nvm/versions/node/v22.14.0/bin:$PATH"
 pnpm check-types
 pnpm lint
