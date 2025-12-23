@@ -102,7 +102,7 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
-    "publish:ovsx": "ovsx publish",
+    "publish:ovsx": "export $(cat .env | xargs) && ovsx publish",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
