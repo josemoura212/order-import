@@ -18,20 +18,16 @@ import { Layout } from './components/layout';`,
 
     const editor = await vscode.window.showTextDocument(doc);
 
-    // Configurar modo normal
     await vscode.workspace
       .getConfiguration("orderImport")
       .update("formatStyle", "normal", vscode.ConfigurationTarget.Global);
 
-    // Executar comando de formatação
     await vscode.commands.executeCommand("order-import.organizeImports");
 
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const text = editor.document.getText();
-    const lines = text.split("\n");
-
-    // Verificar se imports com {} vêm primeiro
+    const lines = text.split("\n").filter((l) => l.trim());
     assert.ok(
       lines[0].includes("{ Header }"),
       "Primeiro import deve ser { Header }"
@@ -45,7 +41,6 @@ import { Layout } from './components/layout';`,
       "Terceiro import deve ser { ThemeProvider }"
     );
 
-    // Verificar se imports sem {} vêm depois
     assert.ok(lines[3].includes("Box"), "Quarto import deve ser Box (default)");
   });
 
@@ -59,29 +54,24 @@ import { Layout } from './components/layout';`,
 
     const editor = await vscode.window.showTextDocument(doc);
 
-    // Configurar modo alinhado
     await vscode.workspace
       .getConfiguration("orderImport")
       .update("formatStyle", "aligned", vscode.ConfigurationTarget.Global);
 
-    // Executar comando de formatação
     await vscode.commands.executeCommand("order-import.organizeImports");
 
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const text = editor.document.getText();
 
-    // Verificar se está alinhado pelo from
     assert.ok(text.includes("from"), "Deve conter a palavra from");
 
-    // Verificar ordem alfabética dos paths
     const lines = text.split("\n").filter((l) => l.trim());
     const paths = lines.map((l) => {
       const match = l.match(/from\s+(['"][^'"]+['"])/);
       return match ? match[1] : "";
     });
 
-    // Paths dos imports com {}
     assert.ok(
       paths[0] === "'./components/header'" ||
         paths[0] === '"./components/header"'
@@ -91,7 +81,6 @@ import { Layout } from './components/layout';`,
         paths[1] === '"./components/layout"'
     );
 
-    // Path do import sem {}
     assert.ok(paths[2].includes("@mui/material/Box"));
   });
 
@@ -113,7 +102,6 @@ import { Layout } from './components/layout';`,
     const text = editor.document.getText();
     const lines = text.split("\n").filter((l) => l.trim());
 
-    // Encontrar onde começam os imports sem {}
     let defaultImportIndex = -1;
     let lastNamedImportIndex = -1;
 
@@ -127,7 +115,6 @@ import { Layout } from './components/layout';`,
       }
     });
 
-    // Verificar que imports com {} vêm antes dos sem {}
     if (lastNamedImportIndex !== -1 && defaultImportIndex !== -1) {
       assert.ok(
         lastNamedImportIndex < defaultImportIndex,
@@ -141,14 +128,11 @@ import { Layout } from './components/layout';`,
 
     let config = vscode.workspace.getConfiguration("orderImport");
 
-    // Verificar estado inicial
     const initialValue = config.get("organizeOnSave");
 
-    // Toggle
     await vscode.commands.executeCommand("order-import.toggleFormatOnSave");
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Recarregar config
     config = vscode.workspace.getConfiguration("orderImport");
     const newValue = config.get("organizeOnSave");
     assert.strictEqual(
@@ -157,7 +141,6 @@ import { Layout } from './components/layout';`,
       "Deve alternar o valor de organizeOnSave"
     );
 
-    // Restaurar valor inicial
     await config.update(
       "organizeOnSave",
       initialValue,
@@ -170,22 +153,102 @@ import { Layout } from './components/layout';`,
 
     let config = vscode.workspace.getConfiguration("orderImport");
 
-    // Selecionar tipo 1
     await vscode.commands.executeCommand("order-import.selectNormal");
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Recarregar config
     config = vscode.workspace.getConfiguration("orderImport");
     let formatStyle = config.get("formatStyle");
     assert.strictEqual(formatStyle, "normal", "Deve configurar para normal");
 
-    // Selecionar tipo 2
     await vscode.commands.executeCommand("order-import.selectAligned");
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Recarregar config novamente
     config = vscode.workspace.getConfiguration("orderImport");
     formatStyle = config.get("formatStyle");
     assert.strictEqual(formatStyle, "aligned", "Deve configurar para aligned");
+  });
+
+  test("Deve processar imports mistos (default + named) em categoria separada", async function () {
+    this.timeout(10000);
+    const doc = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: `import PopupState, { bindMenu, bindTrigger } from 'material-ui-popup-state';
+import { useState, memo } from 'react';
+import Box from '@mui/material/Box';
+import { AgencyModel } from './models/agency.model';`,
+    });
+
+    const editor = await vscode.window.showTextDocument(doc);
+
+    await vscode.workspace
+      .getConfiguration("orderImport")
+      .update("formatStyle", "normal", vscode.ConfigurationTarget.Global);
+
+    await vscode.commands.executeCommand("order-import.organizeImports");
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const text = editor.document.getText();
+    const lines = text.split("\n").filter((l) => l.trim());
+    assert.ok(
+      text.includes("PopupState, { bindMenu, bindTrigger }"),
+      "Import misto deve estar presente e completo"
+    );
+
+    const agency_line = lines.findIndex((l) => l.includes("{ AgencyModel }"));
+    const useState_line = lines.findIndex((l) =>
+      l.includes("{ useState, memo }")
+    );
+    const mixed_line = lines.findIndex((l) =>
+      l.includes("PopupState, { bindMenu")
+    );
+    const box_line = lines.findIndex(
+      (l) => l.includes("Box") && l.includes("@mui")
+    );
+
+    assert.ok(
+      agency_line < useState_line,
+      "Named menor deve vir antes de named maior"
+    );
+    assert.ok(useState_line < mixed_line, "Named deve vir antes de mixed");
+    assert.ok(mixed_line < box_line, "Mixed deve vir antes de default");
+  });
+
+  test("Não deve otimizar imports de @mui/material/styles", async () => {
+    const doc = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: `import { alpha } from '@mui/material/styles';
+import { styled } from '@mui/system';
+import Box from '@mui/material/Box';`,
+    });
+
+    const editor = await vscode.window.showTextDocument(doc);
+
+    await vscode.workspace
+      .getConfiguration("orderImport")
+      .update("muiOptimization", true, vscode.ConfigurationTarget.Global);
+
+    await vscode.commands.executeCommand("order-import.organizeImports");
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const text = editor.document.getText();
+    const lines = text.split("\n").filter((l) => l.trim());
+    assert.ok(
+      lines.some(
+        (l) => l.includes("{ alpha }") && l.includes("@mui/material/styles")
+      ),
+      "Import de alpha deve permanecer como named import de styles"
+    );
+
+    assert.ok(
+      lines.some((l) => l.includes("{ styled }") && l.includes("@mui/system")),
+      "Import de styled deve permanecer como named import de system"
+    );
+
+    assert.ok(
+      lines.some((l) => l.includes("Box") && l.includes("@mui/material/Box")),
+      "Import de Box deve ser otimizado para caminho direto"
+    );
   });
 });

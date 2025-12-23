@@ -38,19 +38,15 @@ import {
  * @param context - The extension context provided by VS Code
  */
 export function activate(context: vscode.ExtensionContext): void {
-  // Flag to prevent recursive formatting
   let isFormatting = false;
 
-  // Register document save listener for automatic import organization
   const saveListener = vscode.workspace.onWillSaveTextDocument((event) => {
     const document = event.document;
 
-    // Prevent recursive formatting calls
     if (isFormatting) {
       return;
     }
 
-    // Check if format-on-save is enabled
     const config = vscode.workspace.getConfiguration("orderImport");
     const organizeOnSave = config.get<boolean>("organizeOnSave", true);
 
@@ -58,7 +54,6 @@ export function activate(context: vscode.ExtensionContext): void {
       return;
     }
 
-    // Only process JavaScript/TypeScript files
     if (
       ![
         "javascript",
@@ -70,11 +65,9 @@ export function activate(context: vscode.ExtensionContext): void {
       return;
     }
 
-    // Set flag and organize imports
     isFormatting = true;
     event.waitUntil(
       Promise.resolve(organizeImports(document)).then((edits) => {
-        // Reset flag after a short delay to prevent race conditions
         setTimeout(() => {
           isFormatting = false;
         }, 100);
@@ -85,7 +78,6 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(saveListener);
 
-  // Register all extension commands
   registerToggleFormatOnSave(context);
   registerSelectNormal(context);
   registerSelectAligned(context);

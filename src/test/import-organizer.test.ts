@@ -138,7 +138,6 @@ suite("Import Organizer Logic Tests", () => {
       ...defaultImports,
     ];
 
-    // Verificar ordem: fix-ts-path primeiro, depois asterisk, depois named, depois default
     assert.strictEqual(
       allImports[0].isFixTsPath,
       true,
@@ -224,6 +223,92 @@ suite("Import Organizer Logic Tests", () => {
       defaultImports[3].named,
       "Typography",
       "Typography (10) deve vir por último"
+    );
+  });
+
+  test("Deve processar imports mistos (default + named)", () => {
+    const mixedImport = {
+      named: "PopupState, { bindMenu, bindTrigger }",
+      path: "'material-ui-popup-state'",
+      isNamed: false,
+      isMixed: true,
+    };
+
+    assert.strictEqual(
+      mixedImport.isMixed,
+      true,
+      "Import misto deve ser classificado como mixed"
+    );
+
+    assert.strictEqual(
+      mixedImport.isNamed,
+      false,
+      "Import misto não deve ser isNamed"
+    );
+
+    const expectedLength = "PopupState, { bindMenu, bindTrigger }".length;
+    assert.strictEqual(
+      mixedImport.named.length,
+      expectedLength,
+      "Tamanho deve incluir default + named"
+    );
+  });
+
+  test("Ordem de precedência: fix-ts-path → asterisk → named → mixed → default", () => {
+    const precedence = [
+      {
+        type: "fix-ts-path",
+        isFixTsPath: true,
+        isAsterisk: false,
+        isNamed: false,
+        isMixed: false,
+      },
+      {
+        type: "asterisk",
+        isFixTsPath: false,
+        isAsterisk: true,
+        isNamed: false,
+        isMixed: false,
+      },
+      {
+        type: "named",
+        isFixTsPath: false,
+        isAsterisk: false,
+        isNamed: true,
+        isMixed: false,
+      },
+      {
+        type: "mixed",
+        isFixTsPath: false,
+        isAsterisk: false,
+        isNamed: false,
+        isMixed: true,
+      },
+      {
+        type: "default",
+        isFixTsPath: false,
+        isAsterisk: false,
+        isNamed: false,
+        isMixed: false,
+      },
+    ];
+
+    assert.strictEqual(
+      precedence[0].type,
+      "fix-ts-path",
+      "fix-ts-path deve ser primeiro"
+    );
+    assert.strictEqual(
+      precedence[1].type,
+      "asterisk",
+      "asterisk deve ser segundo"
+    );
+    assert.strictEqual(precedence[2].type, "named", "named deve ser terceiro");
+    assert.strictEqual(precedence[3].type, "mixed", "mixed deve ser quarto");
+    assert.strictEqual(
+      precedence[4].type,
+      "default",
+      "default deve ser quinto"
     );
   });
 });

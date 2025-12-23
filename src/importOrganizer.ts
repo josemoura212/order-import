@@ -31,8 +31,14 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
   for (let i = imports.length - 1; i >= 0; i--) {
     const imp = imports[i];
 
+    const isStylesOrSystemPath =
+      imp.path.includes("@mui/material/styles") ||
+      imp.path.includes("@mui/system") ||
+      imp.path.includes("@mui/material/colors");
+
     if (
       imp.isNamed &&
+      !isStylesOrSystemPath &&
       (imp.path.includes("@mui/material") ||
         imp.path.includes("@mui/icons-material") ||
         imp.path.includes("@mui/lab") ||
@@ -55,6 +61,7 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
               named: component,
               path: `'${basePath}/${component}'`,
               isNamed: false,
+              isMixed: false,
               isAsterisk: false,
               isFixTsPath: false,
               isSideEffect: false,
@@ -162,9 +169,6 @@ export function organizeImports(
   const text = document.getText();
   const lines = text.split("\n");
 
-  const importRegex =
-    /^import\s+(?:(?:{[^}]+}|(?:\*\s+as\s+)?[\w]+)\s+from\s+)?['"][^'"]+['"];?$/;
-
   let importStartLine = -1;
   let importEndLine = -1;
   const imports: ImportStatement[] = [];
@@ -172,27 +176,62 @@ export function organizeImports(
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
-    if (importRegex.test(line)) {
+    if (line.startsWith("import ")) {
       if (importStartLine === -1) {
         importStartLine = i;
       }
-      importEndLine = i;
 
-      const regularMatch = line.match(
+      let fullImport = lines[i].trim();
+      let currentLine = i;
+
+      while (!fullImport.includes(";") && currentLine < lines.length - 1) {
+        currentLine++;
+        fullImport += " " + lines[currentLine].trim();
+      }
+
+      importEndLine = currentLine;
+      i = currentLine;
+
+      fullImport = fullImport.replace(/;$/, "").replace(/\s+/g, " ").trim();
+
+      const mixedMatch = fullImport.match(
+        /^import\s+([\w]+)\s*,\s*({[^}]+})\s+from\s+(['"][^'"]+['"])/
+      );
+
+      const regularMatch = fullImport.match(
         /^import\s+((?:{[^}]+}|(?:\*\s+as\s+)?[\w]+))\s+from\s+(['"][^'"]+['"])/
       );
-      const sideEffectMatch = line.match(/^import\s+(['"][^'"]+['"]);?$/);
 
-      if (regularMatch) {
+      const sideEffectMatch = fullImport.match(/^import\s+(['"][^'"]+['"])$/);
+
+      if (mixedMatch) {
+        const defaultPart = mixedMatch[1];
+        const namedPart = mixedMatch[2];
+        const path = mixedMatch[3];
+        const combined = `${defaultPart}, ${namedPart}`;
+        const isFixTsPath = path.includes("fix-ts-path");
+
+        imports.push({
+          full: fullImport,
+          named: combined,
+          path: path,
+          isNamed: false,
+          isMixed: true,
+          isAsterisk: false,
+          isFixTsPath: isFixTsPath,
+          isSideEffect: false,
+        });
+      } else if (regularMatch) {
         const named = regularMatch[1];
         const path = regularMatch[2];
         const isAsterisk = named.startsWith("*");
         const isFixTsPath = path.includes("fix-ts-path");
         imports.push({
-          full: line,
+          full: fullImport,
           named: named,
           path: path,
           isNamed: named.startsWith("{"),
+          isMixed: false,
           isAsterisk: isAsterisk,
           isFixTsPath: isFixTsPath,
           isSideEffect: false,
@@ -201,10 +240,11 @@ export function organizeImports(
         const path = sideEffectMatch[1];
         const isFixTsPath = path.includes("fix-ts-path");
         imports.push({
-          full: line,
+          full: fullImport,
           named: "",
           path: path,
           isNamed: false,
+          isMixed: false,
           isAsterisk: false,
           isFixTsPath: isFixTsPath,
           isSideEffect: true,
@@ -239,22 +279,35 @@ export function organizeImports(
   );
   const namedImports = imports.filter(
     (imp) =>
-      !imp.isFixTsPath && !imp.isSideEffect && !imp.isAsterisk && imp.isNamed
+      !imp.isFixTsPath &&
+      !imp.isSideEffect &&
+      !imp.isAsterisk &&
+      !imp.isMixed &&
+      imp.isNamed
+  );
+  const mixedImports = imports.filter(
+    (imp) => !imp.isFixTsPath && !imp.isSideEffect && imp.isMixed
   );
   const defaultImports = imports.filter(
     (imp) =>
-      !imp.isFixTsPath && !imp.isSideEffect && !imp.isAsterisk && !imp.isNamed
+      !imp.isFixTsPath &&
+      !imp.isSideEffect &&
+      !imp.isAsterisk &&
+      !imp.isMixed &&
+      !imp.isNamed
   );
 
   fixTsPathImports.sort((a, b) => a.named.length - b.named.length);
   asteriskImports.sort((a, b) => a.named.length - b.named.length);
   namedImports.sort((a, b) => a.named.length - b.named.length);
+  mixedImports.sort((a, b) => a.named.length - b.named.length);
   defaultImports.sort((a, b) => a.named.length - b.named.length);
 
   const groupedImports = [
     ...fixTsPathImports,
     ...asteriskImports,
     ...namedImports,
+    ...mixedImports,
     ...defaultImports,
   ];
 

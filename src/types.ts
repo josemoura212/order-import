@@ -7,6 +7,7 @@
  * @property {string} named - The imported name(s) or specifier
  * @property {string} path - The module path (with quotes)
  * @property {boolean} isNamed - Whether it's a named import (uses curly braces)
+ * @property {boolean} isMixed - Whether it's a mixed import (default + named)
  * @property {boolean} isAsterisk - Whether it's a namespace import (import * as)
  * @property {boolean} isFixTsPath - Whether it's a fix-ts-path side-effect import
  * @property {boolean} isSideEffect - Whether it's a side-effect only import
@@ -29,6 +30,7 @@ export interface ImportStatement {
   named: string;
   path: string;
   isNamed: boolean;
+  isMixed: boolean;
   isAsterisk: boolean;
   isFixTsPath: boolean;
   isSideEffect: boolean;
