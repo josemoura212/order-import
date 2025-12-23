@@ -1,9 +1,9 @@
 {
   "name": "order-import",
   "displayName": "Order Import",
-  "description": "Ordena imports React",
+  "description": "Automatically organizes and formats JavaScript/TypeScript imports by length (shortest first) with support for MUI optimization and unused import removal. Maintains strict precedence: fix-ts-path → asterisk → named → default imports.",
   "publisher": "josAugusto",
-  "version": "0.0.4",
+  "version": "0.0.10",
   "icon": "icon.png",
   "license": "MIT",
   "repository": {
@@ -11,10 +11,22 @@
     "url": "https://github.com/josemoura212/order-import.git"
   },
   "engines": {
-    "vscode": "^1.107.0"
+    "vscode": "^1.104.0"
   },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "react",
+    "typescript",
+    "imports",
+    "organize",
+    "format",
+    "mui",
+    "material-ui",
+    "tree-shaking",
+    "bundle-size",
+    "import-organizer"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
@@ -22,19 +34,31 @@
     "commands": [
       {
         "command": "order-import.toggleFormatOnSave",
-        "title": "Order Import: Ativar/Desativar Formatação ao Salvar"
+        "title": "Order Import: Toggle Format on Save"
       },
       {
         "command": "order-import.organizeImports",
-        "title": "Order Import: Formatar"
+        "title": "Order Import: Organize Imports"
       },
       {
         "command": "order-import.selectNormal",
-        "title": "Order Import: Selecionar Tipo 1 (Normal)"
+        "title": "Order Import: Select Normal Format"
       },
       {
         "command": "order-import.selectAligned",
-        "title": "Order Import: Selecionar Tipo 2 (Alinhado)"
+        "title": "Order Import: Select Aligned Format"
+      },
+      {
+        "command": "order-import.toggleMuiOptimization",
+        "title": "Order Import: Toggle MUI Optimization"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "order-import.organizeImports",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorTextFocus"
       }
     ],
     "configuration": {
@@ -43,7 +67,7 @@
         "orderImport.organizeOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Organizar imports automaticamente ao salvar o arquivo"
+          "description": "Automatically organize imports when saving files"
         },
         "orderImport.formatStyle": {
           "type": "string",
@@ -52,17 +76,33 @@
             "normal"
           ],
           "default": "aligned",
-          "description": "Estilo de formatação: 'aligned' (alinhado pelo from) ou 'normal' (1 espaço)",
+          "description": "Choose import formatting style: 'normal' (by length) or 'aligned' (alphabetically with aligned 'from')",
           "enumDescriptions": [
-            "Alinha todos os imports pelo 'from' com espaços extras",
-            "Usa apenas 1 espaço antes do 'from'"
+            "Aligns all imports by 'from' with extra spaces",
+            "Uses only 1 space before 'from'"
           ]
+        },
+        "orderImport.muiOptimization": {
+          "type": "boolean",
+          "default": false,
+          "description": "Optimize Material-UI imports for better tree-shaking (converts barrel imports to direct component imports)"
+        },
+        "orderImport.optimizeBarrelFiles": {
+          "type": "boolean",
+          "default": false,
+          "description": "Optimize imports from local barrel files (e.g., './components' -> './components/Button')"
+        },
+        "orderImport.removeUnusedImports": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically remove imports that are not used in the code"
         }
       }
     }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
+    "publish:ovsx": "ovsx publish",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
@@ -73,18 +113,34 @@
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "test": "vscode-test",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "@types/vscode": "^1.107.0",
+    "@types/vscode": "^1.104.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.27.1",
     "eslint": "^9.39.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "npm-run-all": "^4.1.5",
+    "ovsx": "^0.10.7",
+    "prettier": "^3.4.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1"
   }

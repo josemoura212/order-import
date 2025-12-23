@@ -17,9 +17,9 @@ suite("Import Organizer Logic Tests", () => {
     );
   });
 
-  test("Deve ordenar por tamanho (menor primeiro) no modo normal", () => {
+  test("Deve ordenar por comprimento (menor primeiro) - SEMPRE", () => {
     const imports = [
-      { named: "{ ThemeProvider }", length: 16 },
+      { named: "{ ThemeProvider }", length: 17 },
       { named: "{ Header }", length: 10 },
       { named: "{ Layout }", length: 10 },
       { named: "Box", length: 3 },
@@ -29,29 +29,49 @@ suite("Import Organizer Logic Tests", () => {
 
     assert.strictEqual(imports[0].named, "Box", "Menor deve vir primeiro");
     assert.ok(
-      imports[0].length < imports[imports.length - 1].length,
-      "Primeiro elemento deve ser menor que o último"
+      imports[0].length <= imports[imports.length - 1].length,
+      "Primeiro elemento deve ser menor ou igual ao último"
     );
   });
 
-  test("Deve ordenar alfabeticamente por path no modo aligned", () => {
+  test("Ordenação é por comprimento, NÃO alfabética", () => {
     const imports = [
-      { path: "'./config/theme'" },
-      { path: "'./components/header'" },
-      { path: "'@mui/material/Box'" },
+      { named: "{ memo, useState }", path: "'react'", length: 17 },
+      {
+        named: "{ useAgencyInvites }",
+        path: "'../models/agency-invite.model'",
+        length: 21,
+      },
+      {
+        named: "{ useAllTranslationFolders }",
+        path: "'app/apps/i18n/i18n-items.model'",
+        length: 29,
+      },
     ];
 
-    imports.sort((a, b) => a.path.localeCompare(b.path));
+    imports.sort((a, b) => a.named.length - b.named.length);
 
-    // Na ordenação alfabética padrão, ' vem antes de @, mas isso não importa para nosso caso
-    // O importante é que a ordenação seja consistente
-    assert.ok(imports.length === 3, "Deve manter todos os imports");
+    assert.strictEqual(
+      imports[0].named,
+      "{ memo, useState }",
+      "Menor comprimento primeiro"
+    );
+    assert.strictEqual(
+      imports[1].named,
+      "{ useAgencyInvites }",
+      "Segundo menor comprimento"
+    );
+    assert.strictEqual(
+      imports[2].named,
+      "{ useAllTranslationFolders }",
+      "Maior comprimento por último"
+    );
   });
 
   test("Deve calcular espaçamento correto para alinhamento", () => {
     const imports = [
       { named: "{ Header }", length: 10 },
-      { named: "{ ThemeProvider }", length: 16 },
+      { named: "{ ThemeProvider }", length: 17 },
       { named: "Box", length: 3 },
     ];
 
@@ -72,31 +92,78 @@ suite("Import Organizer Logic Tests", () => {
     );
   });
 
-  test("Deve manter ordem: named antes de default", () => {
+  test("Deve manter ordem de precedência: fix-ts-path → asterisk → named → default", () => {
+    const fixTsPath = [
+      { named: "", isFixTsPath: true, isAsterisk: false, isNamed: false },
+    ];
+
+    const asteriskImports = [
+      {
+        named: "* as React",
+        isFixTsPath: false,
+        isAsterisk: true,
+        isNamed: false,
+      },
+    ];
+
     const namedImports = [
-      { named: "{ Header }", isNamed: true },
-      { named: "{ Layout }", isNamed: true },
+      {
+        named: "{ Header }",
+        isFixTsPath: false,
+        isAsterisk: false,
+        isNamed: true,
+      },
+      {
+        named: "{ Layout }",
+        isFixTsPath: false,
+        isAsterisk: false,
+        isNamed: true,
+      },
     ];
 
     const defaultImports = [
-      { named: "Box", isNamed: false },
-      { named: "ListCategory", isNamed: false },
+      { named: "Box", isFixTsPath: false, isAsterisk: false, isNamed: false },
+      {
+        named: "ListCategory",
+        isFixTsPath: false,
+        isAsterisk: false,
+        isNamed: false,
+      },
     ];
 
-    const allImports = [...namedImports, ...defaultImports];
+    const allImports = [
+      ...fixTsPath,
+      ...asteriskImports,
+      ...namedImports,
+      ...defaultImports,
+    ];
 
-    // Verificar que todos named vêm antes dos default
-    let foundDefault = false;
-    for (const imp of allImports) {
-      if (!imp.isNamed) {
-        foundDefault = true;
-      }
-      if (foundDefault && imp.isNamed) {
-        assert.fail("Import named não deve vir depois de default");
-      }
-    }
-
-    assert.ok(true, "Ordem correta mantida");
+    // Verificar ordem: fix-ts-path primeiro, depois asterisk, depois named, depois default
+    assert.strictEqual(
+      allImports[0].isFixTsPath,
+      true,
+      "fix-ts-path deve ser primeiro"
+    );
+    assert.strictEqual(
+      allImports[1].isAsterisk,
+      true,
+      "asterisk deve vir depois de fix-ts-path"
+    );
+    assert.strictEqual(
+      allImports[2].isNamed,
+      true,
+      "named deve vir depois de asterisk"
+    );
+    assert.strictEqual(
+      allImports[allImports.length - 1].isNamed,
+      false,
+      "default deve ser último"
+    );
+    assert.strictEqual(
+      allImports[allImports.length - 1].isAsterisk,
+      false,
+      "default não é asterisk"
+    );
   });
 
   test("Deve formatar corretamente com espaço único no modo normal", () => {
@@ -126,5 +193,37 @@ suite("Import Organizer Logic Tests", () => {
 
     assert.ok(formatted.includes("from"), "Deve conter from");
     assert.ok(spaces.length > 1, "Deve ter múltiplos espaços para alinhamento");
+  });
+
+  test("Deve ordenar default imports por comprimento dentro da categoria", () => {
+    const defaultImports = [
+      { named: "Typography", length: 10 },
+      { named: "Button", length: 6 },
+      { named: "Paper", length: 5 },
+      { named: "TextField", length: 9 },
+    ];
+
+    defaultImports.sort((a, b) => a.named.length - b.named.length);
+
+    assert.strictEqual(
+      defaultImports[0].named,
+      "Paper",
+      "Paper (5) deve vir primeiro"
+    );
+    assert.strictEqual(
+      defaultImports[1].named,
+      "Button",
+      "Button (6) deve vir em segundo"
+    );
+    assert.strictEqual(
+      defaultImports[2].named,
+      "TextField",
+      "TextField (9) deve vir em terceiro"
+    );
+    assert.strictEqual(
+      defaultImports[3].named,
+      "Typography",
+      "Typography (10) deve vir por último"
+    );
   });
 });
