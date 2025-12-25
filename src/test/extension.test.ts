@@ -251,4 +251,126 @@ import Box from '@mui/material/Box';`,
       "Import de Box deve ser otimizado para caminho direto"
     );
   });
+
+  test("Deve otimizar imports do @mui/x-data-grid corretamente", async () => {
+    const doc = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: `import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { DatePicker } from '@mui/x-date-pickers';
+import { ChartsBar } from '@mui/x-charts';`,
+    });
+
+    const editor = await vscode.window.showTextDocument(doc);
+
+    await vscode.workspace
+      .getConfiguration("orderImport")
+      .update("muiOptimization", true, vscode.ConfigurationTarget.Global);
+
+    await vscode.commands.executeCommand("order-import.organizeImports");
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const text = editor.document.getText();
+    const lines = text.split("\n").filter((l) => l.trim());
+
+    // Verifica se os imports foram convertidos para imports diretos
+    assert.ok(
+      lines.some(
+        (l) => l.includes("DataGrid") && l.includes("@mui/x-data-grid/DataGrid")
+      ),
+      "Import de DataGrid deve ser convertido para caminho direto"
+    );
+
+    assert.ok(
+      lines.some(
+        (l) =>
+          l.includes("GridToolbar") &&
+          l.includes("@mui/x-data-grid/GridToolbar")
+      ),
+      "Import de GridToolbar deve ser convertido para caminho direto"
+    );
+
+    assert.ok(
+      lines.some(
+        (l) =>
+          l.includes("DatePicker") &&
+          l.includes("@mui/x-date-pickers/DatePicker")
+      ),
+      "Import de DatePicker deve ser convertido para caminho direto"
+    );
+
+    assert.ok(
+      lines.some(
+        (l) => l.includes("ChartsBar") && l.includes("@mui/x-charts/ChartsBar")
+      ),
+      "Import de ChartsBar deve ser convertido para caminho direto"
+    );
+  });
+
+  test("Deve otimizar imports do @mui/x- com alias corretamente", async () => {
+    const doc = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: `import { DataGrid as MuiDataGrid, GridToolbar as Toolbar } from '@mui/x-data-grid';`,
+    });
+
+    const editor = await vscode.window.showTextDocument(doc);
+
+    await vscode.workspace
+      .getConfiguration("orderImport")
+      .update("muiOptimization", true, vscode.ConfigurationTarget.Global);
+
+    await vscode.commands.executeCommand("order-import.organizeImports");
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const text = editor.document.getText();
+    const lines = text.split("\n").filter((l) => l.trim());
+
+    // Verifica se os imports com alias foram convertidos corretamente
+    assert.ok(
+      lines.some(
+        (l) =>
+          l.includes("MuiDataGrid") && l.includes("@mui/x-data-grid/DataGrid")
+      ),
+      "Import de DataGrid com alias deve ser convertido corretamente"
+    );
+
+    assert.ok(
+      lines.some(
+        (l) =>
+          l.includes("Toolbar") && l.includes("@mui/x-data-grid/GridToolbar")
+      ),
+      "Import de GridToolbar com alias deve ser convertido corretamente"
+    );
+  });
+
+  test("Deve otimizar import específico do @mui/x-data-grid mencionado pelo usuário", async () => {
+    const doc = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: `import { GridFilterModel } from '@mui/x-data-grid';`,
+    });
+
+    const editor = await vscode.window.showTextDocument(doc);
+
+    await vscode.workspace
+      .getConfiguration("orderImport")
+      .update("muiOptimization", true, vscode.ConfigurationTarget.Global);
+
+    await vscode.commands.executeCommand("order-import.organizeImports");
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const text = editor.document.getText();
+    const lines = text.split("\n").filter((l) => l.trim());
+
+    // Verifica se o import foi convertido corretamente
+    assert.ok(
+      lines.some(
+        (l) =>
+          l.includes("GridFilterModel") &&
+          l.includes("@mui/x-data-grid/GridFilterModel")
+      ),
+      "Import de GridFilterModel deve ser convertido para caminho direto"
+    );
+  });
 });

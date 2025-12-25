@@ -18,8 +18,7 @@ import { ImportStatement } from "./types";
  * - @mui/material
  * - @mui/icons-material
  * - @mui/lab
- * - @mui/x-data-grid
- * - @mui/x-date-pickers
+ * - @mui/x-*
  *
  * @param imports - Array of import statements to optimize
  *
@@ -36,15 +35,18 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
       imp.path.includes("@mui/system") ||
       imp.path.includes("@mui/material/colors");
 
-    if (
-      imp.isNamed &&
-      !isStylesOrSystemPath &&
-      (imp.path.includes("@mui/material") ||
-        imp.path.includes("@mui/icons-material") ||
-        imp.path.includes("@mui/lab") ||
-        imp.path.includes("@mui/x-data-grid") ||
-        imp.path.includes("@mui/x-date-pickers"))
-    ) {
+    // Check if the import is from a MUI package but not one of the special cases
+    const isMuiPackage =
+      imp.path.includes("@mui/") && !isStylesOrSystemPath && imp.isNamed;
+
+    // List of known MUI packages that should be optimized
+    const isKnownMuiPackage =
+      imp.path.includes("@mui/material") ||
+      imp.path.includes("@mui/icons-material") ||
+      imp.path.includes("@mui/lab") ||
+      imp.path.includes("@mui/x-"); // This covers all MUI X packages like x-data-grid, x-date-pickers, x-charts, etc.
+
+    if (isMuiPackage && isKnownMuiPackage) {
       const componentsMatch = imp.named.match(/{([^}]+)}/);
       if (componentsMatch) {
         const components = componentsMatch[1]
@@ -56,16 +58,36 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
           const basePath = imp.path.replace(/['"]/g, "");
 
           for (const component of components) {
-            newImports.push({
-              full: `import ${component} from '${basePath}/${component}';`,
-              named: component,
-              path: `'${basePath}/${component}'`,
-              isNamed: false,
-              isMixed: false,
-              isAsterisk: false,
-              isFixTsPath: false,
-              isSideEffect: false,
-            });
+            // Check if the component name contains ' as ' (alias) and handle it properly
+            const [actualComponent, alias] = component
+              .split(" as ")
+              .map((s) => s.trim());
+
+            if (alias) {
+              // Handle aliased imports: import { Component as Comp } from '@mui/...' -> import Comp from '@mui/.../Component'
+              newImports.push({
+                full: `import ${alias} from '${basePath}/${actualComponent}';`,
+                named: alias,
+                path: `'${basePath}/${actualComponent}'`,
+                isNamed: false,
+                isMixed: false,
+                isAsterisk: false,
+                isFixTsPath: false,
+                isSideEffect: false,
+              });
+            } else {
+              // Handle regular imports: import { Component } from '@mui/...' -> import Component from '@mui/.../Component'
+              newImports.push({
+                full: `import ${component} from '${basePath}/${component}';`,
+                named: component,
+                path: `'${basePath}/${component}'`,
+                isNamed: false,
+                isMixed: false,
+                isAsterisk: false,
+                isFixTsPath: false,
+                isSideEffect: false,
+              });
+            }
           }
 
           imports.splice(i, 1);
