@@ -14,11 +14,11 @@ import { ImportStatement } from "./types";
  * import TextField from '@mui/material/TextField';
  * ```
  *
- * This optimization applies to all MUI packages:
- * - @mui/material
- * - @mui/icons-material
- * - @mui/lab
- * - @mui/x-*
+ * This optimization applies to Material-UI packages but NOT MUI X packages:
+ * - @mui/material (optimized)
+ * - @mui/icons-material (optimized)
+ * - @mui/lab (optimized)
+ * - @mui/x-* (NOT optimized, kept as named imports to avoid lint delays)
  *
  * @param imports - Array of import statements to optimize
  *
@@ -35,18 +35,17 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
       imp.path.includes("@mui/system") ||
       imp.path.includes("@mui/material/colors");
 
-    // Check if the import is from a MUI package but not one of the special cases
     const isMuiPackage =
       imp.path.includes("@mui/") && !isStylesOrSystemPath && imp.isNamed;
 
-    // List of known MUI packages that should be optimized
     const isKnownMuiPackage =
       imp.path.includes("@mui/material") ||
       imp.path.includes("@mui/icons-material") ||
-      imp.path.includes("@mui/lab") ||
-      imp.path.includes("@mui/x-"); // This covers all MUI X packages like x-data-grid, x-date-pickers, x-charts, etc.
+      imp.path.includes("@mui/lab");
 
-    if (isMuiPackage && isKnownMuiPackage) {
+    const isMuiXPackage = imp.path.includes("@mui/x-");
+
+    if (isMuiPackage && isKnownMuiPackage && !isMuiXPackage) {
       const componentsMatch = imp.named.match(/{([^}]+)}/);
       if (componentsMatch) {
         const components = componentsMatch[1]
@@ -58,13 +57,11 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
           const basePath = imp.path.replace(/['"]/g, "");
 
           for (const component of components) {
-            // Check if the component name contains ' as ' (alias) and handle it properly
             const [actualComponent, alias] = component
               .split(" as ")
               .map((s) => s.trim());
 
             if (alias) {
-              // Handle aliased imports: import { Component as Comp } from '@mui/...' -> import Comp from '@mui/.../Component'
               newImports.push({
                 full: `import ${alias} from '${basePath}/${actualComponent}';`,
                 named: alias,
@@ -76,7 +73,6 @@ function optimizeMuiImports(imports: ImportStatement[]): void {
                 isSideEffect: false,
               });
             } else {
-              // Handle regular imports: import { Component } from '@mui/...' -> import Component from '@mui/.../Component'
               newImports.push({
                 full: `import ${component} from '${basePath}/${component}';`,
                 named: component,

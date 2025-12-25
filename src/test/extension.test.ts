@@ -252,10 +252,10 @@ import Box from '@mui/material/Box';`,
     );
   });
 
-  test("Deve otimizar imports do @mui/x-data-grid corretamente", async () => {
+  test("Não deve otimizar imports do @mui/x-data-grid", async () => {
     const doc = await vscode.workspace.openTextDocument({
       language: "typescript",
-      content: `import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+      content: `import { GridToolbar } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers';
 import { ChartsBar } from '@mui/x-charts';`,
     });
@@ -273,41 +273,39 @@ import { ChartsBar } from '@mui/x-charts';`,
     const text = editor.document.getText();
     const lines = text.split("\n").filter((l) => l.trim());
 
-    // Verifica se os imports foram convertidos para imports diretos
-    assert.ok(
-      lines.some(
-        (l) => l.includes("DataGrid") && l.includes("@mui/x-data-grid/DataGrid")
-      ),
-      "Import de DataGrid deve ser convertido para caminho direto"
-    );
-
+    // Verifica se os imports MUI-X NÃO foram convertidos para imports diretos (devem permanecer como named imports)
     assert.ok(
       lines.some(
         (l) =>
           l.includes("GridToolbar") &&
-          l.includes("@mui/x-data-grid/GridToolbar")
+          l.includes("@mui/x-data-grid'") &&
+          l.includes("{ GridToolbar }")
       ),
-      "Import de GridToolbar deve ser convertido para caminho direto"
+      "Import de GridToolbar NÃO deve ser convertido para caminho direto"
     );
 
     assert.ok(
       lines.some(
         (l) =>
           l.includes("DatePicker") &&
-          l.includes("@mui/x-date-pickers/DatePicker")
+          l.includes("@mui/x-date-pickers'") &&
+          l.includes("{ DatePicker }")
       ),
-      "Import de DatePicker deve ser convertido para caminho direto"
+      "Import de DatePicker NÃO deve ser convertido para caminho direto"
     );
 
     assert.ok(
       lines.some(
-        (l) => l.includes("ChartsBar") && l.includes("@mui/x-charts/ChartsBar")
+        (l) =>
+          l.includes("ChartsBar") &&
+          l.includes("@mui/x-charts'") &&
+          l.includes("{ ChartsBar }")
       ),
-      "Import de ChartsBar deve ser convertido para caminho direto"
+      "Import de ChartsBar NÃO deve ser convertido para caminho direto"
     );
   });
 
-  test("Deve otimizar imports do @mui/x- com alias corretamente", async () => {
+  test("Não deve otimizar imports do @mui/x- com alias", async () => {
     const doc = await vscode.workspace.openTextDocument({
       language: "typescript",
       content: `import { DataGrid as MuiDataGrid, GridToolbar as Toolbar } from '@mui/x-data-grid';`,
@@ -326,25 +324,29 @@ import { ChartsBar } from '@mui/x-charts';`,
     const text = editor.document.getText();
     const lines = text.split("\n").filter((l) => l.trim());
 
-    // Verifica se os imports com alias foram convertidos corretamente
+    // Verifica se os imports com alias NÃO foram convertidos (devem permanecer como named imports)
     assert.ok(
       lines.some(
         (l) =>
-          l.includes("MuiDataGrid") && l.includes("@mui/x-data-grid/DataGrid")
+          l.includes("MuiDataGrid") &&
+          l.includes("@mui/x-data-grid'") &&
+          l.includes("DataGrid as MuiDataGrid")
       ),
-      "Import de DataGrid com alias deve ser convertido corretamente"
+      "Import de DataGrid com alias NÃO deve ser convertido"
     );
 
     assert.ok(
       lines.some(
         (l) =>
-          l.includes("Toolbar") && l.includes("@mui/x-data-grid/GridToolbar")
+          l.includes("Toolbar") &&
+          l.includes("@mui/x-data-grid'") &&
+          l.includes("GridToolbar as Toolbar")
       ),
-      "Import de GridToolbar com alias deve ser convertido corretamente"
+      "Import de GridToolbar com alias NÃO deve ser convertido"
     );
   });
 
-  test("Deve otimizar import específico do @mui/x-data-grid mencionado pelo usuário", async () => {
+  test("Não deve otimizar import específico do @mui/x-data-grid mencionado pelo usuário", async () => {
     const doc = await vscode.workspace.openTextDocument({
       language: "typescript",
       content: `import { GridFilterModel } from '@mui/x-data-grid';`,
@@ -363,14 +365,15 @@ import { ChartsBar } from '@mui/x-charts';`,
     const text = editor.document.getText();
     const lines = text.split("\n").filter((l) => l.trim());
 
-    // Verifica se o import foi convertido corretamente
+    // Verifica se o import NÃO foi convertido (deve permanecer como named import)
     assert.ok(
       lines.some(
         (l) =>
           l.includes("GridFilterModel") &&
-          l.includes("@mui/x-data-grid/GridFilterModel")
+          l.includes("@mui/x-data-grid'") &&
+          l.includes("{ GridFilterModel }")
       ),
-      "Import de GridFilterModel deve ser convertido para caminho direto"
+      "Import de GridFilterModel NÃO deve ser convertido para caminho direto"
     );
   });
 });
